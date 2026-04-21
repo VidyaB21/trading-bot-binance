@@ -58,6 +58,12 @@ API_SECRET=your_testnet_secret_key
 ⚠️ Never commit your `.env` file
 
 ---
+## Screen Shorts 
+<img width="1012" height="846" alt="image" src="https://github.com/user-attachments/assets/4cb66be1-ab4e-4e3b-a10c-3d3e79f34026" />
+---
+<img width="1019" height="896" alt="image" src="https://github.com/user-attachments/assets/47e07be7-2784-4b49-aacd-21a6eee8ed7a" />
+---
+
 
 ## ▶️ Usage
 
