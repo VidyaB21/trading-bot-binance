@@ -127,7 +127,6 @@ This project was built as part of a Python Developer Internship assignment to de
 ## 👨‍💻 Author
 
 **Vidya Bag**  
-GitHub: https://github.com/VidyaB21
 ---
 
 ## ⭐ Future Improvements
