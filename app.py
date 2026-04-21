@@ -20,7 +20,17 @@ quantity = st.sidebar.number_input("Quantity", value=0.01)
 def get_klines(symbol):
     try:
         url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval=1m&limit=100"
-        data = requests.get(url).json()
+        res = requests.get(url, timeout=10)
+
+        if res.status_code != 200:
+            st.error("❌ API request failed")
+            return pd.DataFrame()
+
+        data = res.json()
+
+        if not data:
+            st.warning("⚠️ No data returned from Binance")
+            return pd.DataFrame()
 
         df = pd.DataFrame(data, columns=[
             "time", "open", "high", "low", "close", "volume",
@@ -35,19 +45,21 @@ def get_klines(symbol):
 
         return df
 
-    except Exception:
-        st.error("❌ Error fetching market data")
+    except Exception as e:
+        st.error(f"❌ Error fetching data: {e}")
         return pd.DataFrame()
 
-# 🔹 LOAD DATA WITH SPINNER
+
+# 🔹 LOAD DATA
 with st.spinner("Loading market data..."):
     df = get_klines(symbol)
 
-# STOP IF DATA FAILS
+# 🔥 FIX: SHOW ERROR INSTEAD OF BLANK SCREEN
 if df.empty:
+    st.error("🚨 Failed to load market data. Please try again.")
     st.stop()
 
-# 🔹 CANDLESTICK CHART
+# 🔹 CHART
 st.subheader("📊 Candlestick Chart")
 
 fig = go.Figure(data=[go.Candlestick(
@@ -58,10 +70,14 @@ fig = go.Figure(data=[go.Candlestick(
     close=df["close"]
 )])
 
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
 
-# 🔹 RSI SIGNAL
-signal, rsi_value = generate_signal(df)
+# 🔹 SIGNAL
+try:
+    signal, rsi_value = generate_signal(df)
+except Exception as e:
+    st.error(f"❌ Strategy error: {e}")
+    st.stop()
 
 st.subheader("🤖 AI Trading Signal")
 
@@ -103,18 +119,21 @@ if st.button("🚀 Auto Trade"):
         except Exception as e:
             st.error(f"❌ Trade failed: {e}")
 
-# 🔹 SL/TP (SIMULATED)
+# 🔹 SL/TP
 st.subheader("⚙️ Risk Management (SL/TP)")
 
 stop_loss = st.number_input("Stop Loss", value=25000.0)
 take_profit = st.number_input("Take Profit", value=35000.0)
 
 if st.button("Set SL / TP"):
-    result = place_stop_loss_take_profit(
-        symbol, "BUY", quantity, stop_loss, take_profit
-    )
-    st.info("SL/TP configured")
-    st.json(result)
+    try:
+        result = place_stop_loss_take_profit(
+            symbol, "BUY", quantity, stop_loss, take_profit
+        )
+        st.info("SL/TP configured")
+        st.json(result)
+    except Exception as e:
+        st.error(f"❌ SL/TP failed: {e}")
 
 # 🔹 BALANCE
 st.subheader("💰 Account Balance")
@@ -126,6 +145,6 @@ if st.button("Check Balance"):
     except Exception as e:
         st.error(f"❌ Error fetching balance: {e}")
 
-# 🔄 AUTO REFRESH
+# 🔄 AUTO REFRESH (SAFE)
 time.sleep(5)
 st.rerun()
