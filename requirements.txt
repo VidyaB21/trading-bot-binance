@@ -1,4 +1,6 @@
-python-binance
-typer
-loguru
+streamlit
+pandas
+requests
+plotly
 python-dotenv
+loguru
